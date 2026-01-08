@@ -27,8 +27,18 @@ import * as VueRouter from "vue-router"
 import App from "./App.vue"
 import TicketListing from "./ticket-listing/TicketListing.vue"
 
+const routerBase = (() => {
+  const base = (window as any)?.traq?.base ?? "/"
+  try {
+    // If `base` is a full URL, reduce to pathname.
+    return new URL(base, window.location.origin).pathname
+  } catch {
+    return base
+  }
+})()
+
 const router = VueRouter.createRouter({
-  history: VueRouter.createWebHistory(),
+  history: VueRouter.createWebHistory(routerBase),
   routes: [{ name: "tickets", path: "/:project/tickets", component: TicketListing }],
 })
 
