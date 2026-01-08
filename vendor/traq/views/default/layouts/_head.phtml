@@ -12,11 +12,12 @@
 <script src="<?= Request::base('_js') ?>" type="text/javascript"></script>
 <?= ui_package('src/assets/main.ts') ?>
 
-<?php if (isset($project)) : ?>
-	<script>
-		window.traq.project_slug = <?php echo json_encode($project->slug); ?>
-	</script>
-<?php endif; ?>
+<script>
+	window.traq.base = <?php echo json_encode(Request::base()); ?>;
+	<?php if (isset($project)) : ?>
+		window.traq.project_slug = <?php echo json_encode($project->slug); ?>;
+	<?php endif; ?>
+</script>
 
 <?php FishHook::run('template:layouts/global/head'); ?>
 <?php foreach ($app->feeds as $feed) { ?>
