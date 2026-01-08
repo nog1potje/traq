@@ -18,7 +18,7 @@ const auth = useAuthStore()
 const currentProject = useProjectStore()
 
 const massActionsAllToggler = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const sortBy = ref<string | null>(null)
@@ -28,15 +28,6 @@ const tickets = ref<TicketInterface[]>([])
 const columns = ref<string[]>(["ticket_id", "summary", "status", "type", "owner", "component", "milestone"])
 const customFields = ref<CustomFieldInterface[]>([])
 const checkedTickets = ref<number[]>([])
-
-watch(
-  () => isLoading,
-  (loading) => {
-    if (loading) {
-      getTickets()
-    }
-  }
-)
 
 const getTicketsUrl = computed(() => {
   let ticketsUrl = window.traq.base + "api/" + window.traq.project_slug + "/tickets.json"
@@ -63,11 +54,18 @@ const getTicketsUrl = computed(() => {
 })
 
 const getTickets = () => {
-  axios.get(getTicketsUrl.value).then((resp) => {
-    tickets.value = resp.data.tickets
-    currentPage.value = resp.data.page
-    totalPages.value = resp.data.total_pages
-  })
+  isLoading.value = true
+
+  axios
+    .get(getTicketsUrl.value)
+    .then((resp) => {
+      tickets.value = resp.data.tickets ?? []
+      currentPage.value = resp.data.page ?? 1
+      totalPages.value = resp.data.total_pages ?? 1
+    })
+    .finally(() => {
+      isLoading.value = false
+    })
 }
 
 const sortTickets = (column: string) => {
@@ -95,7 +93,7 @@ const updateColumns = (newColumns: string[]): void => {
   columns.value = newColumns
 }
 
-const formatDate = (date: DateTime): string => {
+const formatDate = (date: string | null): string => {
   return date ? DateTime.fromSQL(date, { zone: "UTC" }).toLocal().toRelative() : "-"
 }
 
@@ -144,10 +142,14 @@ const changePage = (page: number): void => {
 onMounted(() => {
   const customFieldsUrl = `${window.traq.base}api/${window.traq.project_slug}/custom-fields`
 
-  Promise.all([axios.get(customFieldsUrl)]).then(([fieldsResp]) => {
-    customFields.value = fieldsResp.data
-    isLoading.value = false
-  })
+  Promise.all([axios.get(customFieldsUrl)])
+    .then(([fieldsResp]) => {
+      customFields.value = fieldsResp.data ?? []
+    })
+    .finally(() => {
+      // Always attempt to load tickets, even if custom fields fail to load.
+      getTickets()
+    })
 })
 </script>
 
