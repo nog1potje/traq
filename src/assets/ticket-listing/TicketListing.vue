@@ -18,7 +18,7 @@ const auth = useAuthStore()
 const currentProject = useProjectStore()
 
 const massActionsAllToggler = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const sortBy = ref<string | null>(null)
@@ -63,7 +63,7 @@ const getTicketsUrl = computed(() => {
 })
 
 const getTickets = () => {
-  axios.get(getTicketsUrl.value).then((resp) => {
+  return axios.get(getTicketsUrl.value).then((resp) => {
     tickets.value = resp.data.tickets
     currentPage.value = resp.data.page
     totalPages.value = resp.data.total_pages
@@ -144,7 +144,7 @@ const changePage = (page: number): void => {
 onMounted(() => {
   const customFieldsUrl = `${window.traq.base}api/${window.traq.project_slug}/custom-fields`
 
-  Promise.all([axios.get(customFieldsUrl)]).then(([fieldsResp]) => {
+  Promise.all([axios.get(customFieldsUrl), getTickets()]).then(([fieldsResp]) => {
     customFields.value = fieldsResp.data
     isLoading.value = false
   })
