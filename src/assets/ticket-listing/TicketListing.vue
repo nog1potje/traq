@@ -98,8 +98,20 @@ const formatDate = (date: string | null): string => {
 }
 
 const updateUrl = () => {
-  // Update page URL to the same URL to fetch tickets without the .json extension.
-  router.push(getTicketsUrl.value.replace(".json", "").replace("/api", ""))
+  // Keep the browser URL in sync with the current ticket listing state.
+  // Important: do NOT include `window.traq.base` in the router path, because
+  // vue-router already applies its configured history base.
+  const url = new URL(getTicketsUrl.value, window.location.origin)
+  const query: Record<string, string> = {}
+  url.searchParams.forEach((value, key) => {
+    query[key] = value
+  })
+
+  router.push({
+    name: "tickets",
+    params: { project: window.traq.project_slug },
+    query,
+  })
 }
 
 const toggleTicket = (ticketId: number): void => {
